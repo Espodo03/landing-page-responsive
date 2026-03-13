@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <title>Aero Finance Pro - Final</title>
+    <style>
+        .aero-glass {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+        .glossy-reflection {
+            background: linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 50%);
+        }
+        body {
+            background: linear-gradient(135deg, #3b82f6 0%, #4ade80 50%, #60a5fa 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .btn-aero { border-top: 1px solid rgba(255,255,255,0.5); transition: all 0.2s; cursor: pointer; }
+        .btn-aero:active { transform: scale(0.95); }
+        .delete-btn { opacity: 0; transition: opacity 0.2s; }
+        li:hover .delete-btn { opacity: 1; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 font-sans select-none">
+
+    <div class="relative w-full max-w-5xl aero-glass rounded-[40px] shadow-2xl overflow-hidden my-8">
+        <div class="absolute inset-0 glossy-reflection pointer-events-none h-32"></div>
+
+        <div class="p-8 relative">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h1 class="text-4xl font-black text-blue-900 italic tracking-tighter drop-shadow-md">
+                    Aero<span class="text-green-600">Finance</span>
+                </h1>
+                
+                <div class="flex items-center gap-2 bg-white/40 p-2 rounded-full border border-white">
+                    <select id="monthSelect" onchange="updateUI()" class="bg-white/80 rounded-full px-4 py-1 text-blue-900 font-bold text-sm outline-none">
+                        <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+                        <option value="2">Março</option><option value="3">Abril</option>
+                        <option value="4">Maio</option><option value="5">Junho</option>
+                        <option value="6">Julho</option><option value="7">Agosto</option>
+                        <option value="8">Setembro</option><option value="9">Outubro</option>
+                        <option value="10">Novembro</option><option value="11">Dezembro</option>
+                    </select>
+                    <select id="yearSelect" onchange="updateUI()" class="bg-white/80 rounded-full px-4 py-1 text-blue-900 font-bold text-sm outline-none">
+                        <option>2024</option><option selected>2025</option><option>2026</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="exportData()" title="Salvar Backup" class="bg-white/60 hover:bg-white/80 p-2 rounded-full border border-white">💾</button>
+                    <label class="bg-white/60 hover:bg-white/80 p-2 rounded-full border border-white cursor-pointer" title="Importar Backup">
+                        📂 <input type="file" id="importFile" onchange="importData(event)" class="hidden">
+                    </label>
+                    <button onclick="clearData()" title="Limpar Tudo" class="bg-red-500/20 hover:bg-red-500/40 p-2 rounded-full border border-white">🗑️</button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Dashboard de Saldo -->
+                    <div class="grid grid-cols-3 gap-4 text-center font-bold">
+                        <div class="bg-white/50 p-4 rounded-3xl border border-white">
+                            <p class="text-[10px] uppercase text-blue-700">Lucros</p>
+                            <p id="totalProfit" class="text-2xl text-green-600">R$ 0,00</p>
+                        </div>
+                        <div class="bg-white/50 p-4 rounded-3xl border border-white">
+                            <p class="text-[10px] uppercase text-blue-700">Gastos</p>
+                            <p id="totalExpense" class="text-2xl text-red-500">R$ 0,00</p>
+                        </div>
+                        <div id="balanceCard" class="bg-blue-500/20 p-4 rounded-3xl border-2 border-white transition-colors">
+                            <p class="text-[10px] uppercase text-blue-800">Saldo</p>
+                            <p id="balance" class="text-2xl text-blue-900">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <!-- Formulário -->
+                    <div class="bg-white/30 p-6 rounded-[30px] border border-white/50 space-y-4 shadow-inner">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="descInput" placeholder="Ex: Salário" class="bg-white/80 rounded-2xl px-5 py-3 outline-none">
+                            <input type="number" id="valInput" placeholder="Valor R$" class="bg-white/80 rounded-2xl px-5 py-3 outline-none">
+                        </div>
+                        <div class="flex gap-4">
+                            <button onclick="addEntry('profit')" class="btn-aero flex-grow bg-gradient-to-b from-green-400 to-green-600 text-white font-bold py-3 rounded-2xl shadow-lg">LUCRO (+)</button>
+                            <button onclick="addEntry('expense')" class="btn-aero flex-grow bg-gradient-to-b from-red-400 to-red-600 text-white font-bold py-3 rounded-2xl shadow-lg">GASTO (-)</button>
+                        </div>
+                    </div>
+
+                    <!-- Listas com botão de deletar -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-[10px] font-black text-blue-900 uppercase ml-2 mb-2 italic">Entradas</h3>
+                            <ul id="profitList" class="space-y-2 max-h-60 overflow-y-auto"></ul>
+                        </div>
+                        <div>
+                            <h3 class="text-[10px] font-black text-red-900 uppercase ml-2 mb-2 italic">Saídas</h3>
+                            <ul id="expenseList" class="space-y-2 max-h-60 overflow-y-auto"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Pizza (Rosca) -->
+                <div class="bg-white/40 p-6 rounded-[40px] border border-white flex flex-col items-center justify-center min-h-[300px]">
+                    <h3 class="text-blue-900 font-bold mb-4 italic text-sm">Distribuição do Mês</h3>
+                    <canvas id="financeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white/20 p-3 text-center text-[10px] text-blue-900 font-bold border-t border-white/40 uppercase tracking-[3px]">
+            Aero v3.7 | Sound & Fixed Import | 🫧
+        </div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('aeroFinanceDB')) || {};
+        let myChart;
+
+        // Som de Bolha Sintetizado
+        function playSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'sine'; o.frequency.setValueAtTime(600, ctx.currentTime);
+                o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                g.gain.setValueAtTime(0.1, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                o.connect(g); g.connect(ctx.destination);
+                o.start(); o.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+        }
+
+        function getCurrentKey() {
+            const m = document.getElementById('monthSelect').value;
+            const y = document.getElementById('yearSelect').value;
+            return `${m}-${y}`;
+        }
+
+        function updateUI() {
+            const key = getCurrentKey();
+            if (!db[key]) db[key] = { profits: [], expenses: [] };
+
+            const pList = document.getElementById('profitList');
+            const eList = document.getElementById('expenseList');
+            pList.innerHTML = ''; eList.innerHTML = '';
+
+            let totalP = 0; let totalE = 0;
+
+            db[key].profits.forEach((item, i) => {
+                totalP += item.value;
+                pList.appendChild(createListItem(item, i, 'profit'));
+            });
+
+            db[key].expenses.forEach((item, i) => {
+                totalE += item.value;
+                eList.appendChild(createListItem(item, i, 'expense'));
+            });
+
+            document.getElementById('totalProfit').innerText = `R$ ${totalP.toFixed(2)}`;
+            document.getElementById('totalExpense').innerText = `R$ ${totalE.toFixed(2)}`;
+            const bal = totalP - totalE;
+            document.getElementById('balance').innerText = `R$ ${bal.toFixed(2)}`;
+            document.getElementById('balanceCard').style.backgroundColor = bal >= 0 ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+
+            updateChart(totalP, totalE);
+            localStorage.setItem('aeroFinanceDB', JSON.stringify(db));
+        }
+
+        function createListItem(item, index, type) {
+            const li = document.createElement('li');
+            li.className = "bg-white/80 p-3 rounded-xl flex justify-between items-center border border-white shadow-sm hover:translate-x-1 transition-all";
+            li.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 rounded-full ${type === 'profit' ? 'bg-green-400' : 'bg-red-400'} border-2 border-white shadow-sm"></div>
+                    <span class="text-blue-900 text-sm font-medium">${item.desc}</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="font-bold ${type === 'profit' ? 'text-green-600' : 'text-red-500'} text-sm">R$ ${item.value.toFixed(2)}</span>
+                    <button onclick="deleteEntry('${type}', ${index})" class="delete-btn text-red-500 hover:scale-125 transition-transform font-bold px-2">✕</button>
+                </div>
+            `;
+            return li;
+        }
+
+        function addEntry(type) {
+            const descInput = document.getElementById('descInput');
+            const valInput = document.getElementById('valInput');
+            const desc = descInput.value;
+            const val = parseFloat(valInput.value);
+
+            if (!desc || isNaN(val)) return;
+
+            const key = getCurrentKey();
+            db[key][type === 'profit' ? 'profits' : 'expenses'].push({desc, value: val});
+            
+            playSound();
+            descInput.value = '';
+            valInput.value = '';
+            updateUI();
+        }
+
+        function deleteEntry(type, index) {
+            const key = getCurrentKey();
+            db[key][type === 'profit' ? 'profits' : 'expenses'].splice(index, 1);
+            playSound();
+            updateUI();
+        }
+
+        function updateChart(p, e) {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lucro', 'Gasto'],
+                    datasets: [{
+                        data: [p || 1, e || 0],
+                        backgroundColor: ['#4ade80', '#f87171'],
+                        borderColor: '#ffffff',
+                        borderWidth: 4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, cutout: '75%' }
+            });
+        }
+
+        function exportData() {
+            playSound();
+            const blob = new Blob([JSON.stringify(db, null, 2)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `AeroFinance_Backup.json`;
+            a.click();
+        }
+
+        function importData(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    // Aceita se for um objeto (formato do nosso DB)
+                    if (imported && typeof imported === 'object') {
+                        db = imported;
+                        localStorage.setItem('aeroFinanceDB', JSON.stringify(db));
+                        updateUI();
+                        playSound();
+                        alert("Backup restaurado!");
+                    } else {
+                        throw new Error();
+                    }
+                } catch(err) { alert("Arquivo inválido!"); }
+            };
+            reader.readAsText(files[0]); // Pega o primeiro arquivo explicitamente
+            event.target.value = '';
+        }
+
+        function clearData() {
+            if(confirm("Deseja apagar TUDO?")) {
+                db = {};
+                localStorage.clear();
+                updateUI();
+            }
+        }
+
+        // Iniciar
+        updateUI();
+    </script>
+</body>
+</html>
