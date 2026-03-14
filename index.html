@@ -112,7 +112,7 @@
             </div>
         </div>
         <div class="bg-white/20 p-3 text-center text-[10px] text-blue-900 font-bold border-t border-white/40 uppercase tracking-[3px]">
-            Aero v3.7 | Sound & Fixed Import | 🫧
+            AeroFinances v3.7 | Made By ~LC003 | 🫧
         </div>
     </div>
 
@@ -246,7 +246,7 @@
             reader.onload = (e) => {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    // Aceita se for um objeto (formato do nosso DB)
+                    // Aceita se for um objeto (formato do DB)
                     if (imported && typeof imported === 'object') {
                         db = imported;
                         localStorage.setItem('aeroFinanceDB', JSON.stringify(db));
