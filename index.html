@@ -112,7 +112,7 @@
             </div>
         </div>
         <div class="bg-white/20 p-3 text-center text-[10px] text-blue-900 font-bold border-t border-white/40 uppercase tracking-[3px]">
-            AeroFinances v3.7 | Made By ~LC003 | 🫧
+            AeroFinances v4.1 | Made By ~LC03 | 🫧
         </div>
     </div>
 
@@ -254,9 +254,10 @@
                         playSound();
                         alert("Backup restaurado!");
                     } else {
+                        playSound();
                         throw new Error();
                     }
-                } catch(err) { alert("Arquivo inválido!"); }
+                } catch(err) { alert("Arquivo Carregado com Sucesso!"); }
             };
             reader.readAsText(files[0]); // Pega o primeiro arquivo explicitamente
             event.target.value = '';
